@@ -13,7 +13,7 @@ type AnalyzeResponse struct {
 	TestTime        int64      `json:"testTime,omitempty"`
 	EngineVersion   string     `json:"engineVersion"`
 	CriteriaVersion string     `json:"criteriaVersion"`
-	Endpoints       []Endpoint `json:"endpoints"` // A domain can have multiple IP addresses
+	Endpoints       []Endpoint `json:"endpoints,omitempty"` // A domain can have multiple IP addresses
 }
 
 // Endpoint represents a specific server IP behind the domain.
