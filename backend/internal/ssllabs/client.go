@@ -8,7 +8,7 @@ import (
 )
 
 // Entry point for the SSL Labs API.
-const BaseURL = "https://api.ssllabs.com/api/v2"
+const BaseURL = "https://api.ssllabs.com/api/v3"
 
 type Client struct {
 	http *http.Client
@@ -26,53 +26,38 @@ func NewClient() *Client {
 // Analyze function triggers a TLS check for a specific domain.
 // This will use cached results if available, or start a new assessment if needed.
 func (c *Client) Analyze(domain string) (*AnalyzeResponse, error) {
-	// 1. Construct the URL
+	// Construct the URL without startNew=on to use cached results
 	url := fmt.Sprintf("%s/analyze?host=%s&all=done", BaseURL, domain)
 
-	// 2. Make the Request
-	resp, err := c.http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to contact SSL Labs: %w", err)
-	}
-	
-	// 3. Close body when this function finishes
-	defer resp.Body.Close()
-
-	// 4. Check HTTP Status Code
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned non-200 status: %d", resp.StatusCode)
-	}
-
-	// 5. Decode JSON directly into the Struct
-	var result AnalyzeResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
-	}
-
-	return &result, nil
+	return c.doRequest(url)
 }
 
 // FreshAnalyze initiates a new SSL Labs assessment, ignoring cached results.
 // This method should be called ONCE to start a new assessment. It could be called again when the assessment is complete.
 func (c *Client) FreshAnalyze(domain string) (*AnalyzeResponse, error) {
-	// 1. Construct the URL with startNew=on to force a new assessment
+	// Construct the URL with startNew=on to force a new assessment
 	url := fmt.Sprintf("%s/analyze?host=%s&startNew=on&all=done", BaseURL, domain)
 
-	// 2. Make the Request
+	return c.doRequest(url)
+}
+
+// doRequest is a helper function to make a request to the SSL Labs API and return the response.
+func (c *Client) doRequest(url string) (*AnalyzeResponse, error) {
+	// 1. Make the Request
 	resp, err := c.http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to contact SSL Labs: %w", err)
 	}
-	
-	// 3. Close body when this function finishes
+
+	// 2. Close body when this function finishes
 	defer resp.Body.Close()
 
-	// 4. Check HTTP Status Code
+	// 3. Check HTTP Status Code
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned non-200 status: %d", resp.StatusCode)
 	}
 
-	// 5. Decode JSON directly into the Struct
+	// 4. Decode JSON directly into the Struct
 	var result AnalyzeResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
@@ -81,6 +66,8 @@ func (c *Client) FreshAnalyze(domain string) (*AnalyzeResponse, error) {
 	return &result, nil
 }
 
+// WaitForResults waits for the scan to complete by polling the API every 5 seconds,
+// until the scan is complete or the timeout is reached.
 func (c *Client) WaitForResults(domain string) (*AnalyzeResponse, error) {
 	// 1. Create a ticker that ticks every 5 seconds
 	ticker := time.NewTicker(5 * time.Second)

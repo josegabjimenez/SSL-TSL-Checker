@@ -21,7 +21,7 @@ type Endpoint struct {
 	IPAddress         string `json:"ipAddress"`
 	ServerName        string `json:"serverName,omitempty"`
 	StatusMessage     string `json:"statusMessage,omitempty"`
-	Grade             string `json:"grade,omitempty"`             // e.g., "A+", "B", "F"
+	Grade             string `json:"grade,omitempty"` // e.g., "A+", "B", "F"
 	GradeTrustIgnored string `json:"gradeTrustIgnored,omitempty"`
 	HasWarnings       bool   `json:"hasWarnings"`
 	IsExceptional     bool   `json:"isExceptional"`

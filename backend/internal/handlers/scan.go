@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
 	"backend/internal/ssllabs"
+	"encoding/json"
 	"net/http"
 )
 
@@ -19,10 +19,10 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "domain is required"}`, http.StatusBadRequest)
 		return
 	}
-	
+
 	shouldStartNew := r.URL.Query().Get("new") == "true"
 
-	// Initialize the client 
+	// Initialize the client
 	client := ssllabs.NewClient()
 	var resp *ssllabs.AnalyzeResponse
 	var err error

@@ -13,7 +13,7 @@ func main() {
 	// Start the server on port 8080
 	port := ":8080"
 	log.Printf("🚀 Server starting on http://localhost%s", port)
-	
+
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)
 	}
